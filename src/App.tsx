@@ -2201,49 +2201,6 @@ const PORT_INIT = [
 ];
 const BALANCE_INIT = 1000000;
 
-// Session storage
-const _store = new Map();
-const SecureSession = {
-  set(k: string, v: any, e = 8 * 60 * 60 * 1000) {
-    try {
-      _store.set(k, { v, exp: Date.now() + e });
-      if (typeof localStorage !== 'undefined') localStorage.setItem(k, JSON.stringify({ v, exp: Date.now() + e }));
-    } catch {}
-  },
-  get(k: string) {
-    try {
-      const m = _store.get(k);
-      if (m) {
-        if (Date.now() > m.exp) {
-          _store.delete(k);
-          return null;
-        }
-        return m.v;
-      }
-      if (typeof localStorage === 'undefined') return null;
-      const raw = localStorage.getItem(k);
-      if (!raw) return null;
-      const { v, exp } = JSON.parse(raw);
-      if (Date.now() > exp) {
-        localStorage.removeItem(k);
-        return null;
-      }
-      _store.set(k, { v, exp });
-      return v;
-    } catch {
-      return null;
-    }
-  },
-  clear() {
-    ['apex_user', 'apex_token', 'apex_session'].forEach(k => {
-      _store.delete(k);
-      try {
-        if (typeof localStorage !== 'undefined') localStorage.removeItem(k);
-      } catch {}
-    });
-  },
-};
-
 // Generate candles
 function genCandles(base: number, n = 120, ms = 60000) {
   let p = base * (0.91 + Math.random() * 0.07);
