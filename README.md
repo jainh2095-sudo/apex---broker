@@ -56,6 +56,32 @@ A modern, Apple-inspired trading platform built with React, TypeScript, and Tail
    http://localhost:5173
    ```
 
+## 🏗️ CodeSandbox Deployment
+
+### **Quick Upload to CodeSandbox:**
+
+1. **Go to CodeSandbox** → https://codesandbox.io/
+
+2. **Click "Import" → "Import from GitHub"**
+
+3. **Paste your repo URL**:
+   ```
+   https://github.com/jainh2095-sudo/apex---broker
+   ```
+
+4. **CodeSandbox will auto-detect** the Vite configuration and run your app!
+
+### **Manual Upload:**
+
+1. **Create new sandbox** → Select "Import" → "Upload files"
+2. **Upload the entire project folder**
+3. **The app will work immediately** (Vite config includes CodeSandbox host permissions)
+
+### **Why It Works:**
+- ✅ **Host permissions**: `vite.config.ts` allows `*.csb.app` domains
+- ✅ **Sandbox compatibility**: Code handles iframe restrictions
+- ✅ **No CORS issues**: Proper configuration for external domains
+
 ## 🏗️ Build for Production
 
 ```bash

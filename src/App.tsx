@@ -81,6 +81,7 @@ const getChangeColor = (change: number | null) => {
 const SecureSession = {
   set(key: string, value: any, expiryHours = 8) {
     try {
+      if (typeof localStorage === 'undefined') return;
       const expiry = Date.now() + (expiryHours * 60 * 60 * 1000);
       const data = { value, expiry };
       localStorage.setItem(`apex_${key}`, JSON.stringify(data));
@@ -91,6 +92,7 @@ const SecureSession = {
 
   get(key: string) {
     try {
+      if (typeof localStorage === 'undefined') return null;
       const stored = localStorage.getItem(`apex_${key}`);
       if (!stored) return null;
 
@@ -109,6 +111,7 @@ const SecureSession = {
 
   clear() {
     try {
+      if (typeof localStorage === 'undefined') return;
       Object.keys(localStorage).forEach(key => {
         if (key.startsWith('apex_')) {
           localStorage.removeItem(key);
@@ -252,8 +255,8 @@ const INITIAL_BALANCE = 1000000;
 // Main App Component with Apple-level sophistication
 export default function ApexTrader() {
   const [user, setUser] = useState(() => SecureSession.get('user'));
-  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 768 && window.innerWidth < 1100);
+  const [isMobile, setIsMobile] = useState(false); // Start with desktop default
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Start expanded
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [assets, setAssets] = useState(() => ASSETS_DATA.map(asset => ({
     ...asset,
@@ -275,15 +278,22 @@ export default function ApexTrader() {
   // Apple-style smooth animations
   useEffect(() => {
     const handleResize = () => {
-      const width = window.innerWidth;
+      if (typeof window === 'undefined') return;
+      const width = window.innerWidth || 1024; // Default to desktop if not available
       const mobile = width < 768;
       setIsMobile(mobile);
       if (!mobile) setSidebarOpen(false);
       setSidebarCollapsed(width >= 768 && width < 1100);
     };
 
-    window.addEventListener('resize', handleResize, { passive: true });
-    return () => window.removeEventListener('resize', handleResize);
+    // Initial check
+    handleResize();
+
+    // Only add listener if window is available
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize, { passive: true });
+      return () => window.removeEventListener('resize', handleResize);
+    }
   }, []);
 
   useEffect(() => {
@@ -2352,8 +2362,21 @@ export default function ApexTrader() {
     if (!user) return;
     const SESSION_TIMEOUT = 30 * 60 * 1000;
     const resetTimer = () => { lastActivity.current = Date.now(); setSessionExpiry(Date.now() + SESSION_TIMEOUT); if (inactiveTimerRef.current) clearTimeout(inactiveTimerRef.current); inactiveTimerRef.current = setTimeout(() => { showToast('Session expired', 'warning'); setTimeout(() => { SecureSession.clear(); setUser(null); }, 2000); }, SESSION_TIMEOUT); };
-    const evts = ['mousedown', 'keydown', 'touchstart', 'scroll']; evts.forEach(e => window.addEventListener(e, resetTimer, { passive: true })); resetTimer();
-    return () => { evts.forEach(e => window.removeEventListener(e, resetTimer)); if (inactiveTimerRef.current) clearTimeout(inactiveTimerRef.current); };
+    const evts = ['mousedown', 'keydown', 'touchstart', 'scroll'];
+
+    // Only add listeners if window is available
+    if (typeof window !== 'undefined') {
+      evts.forEach(e => window.addEventListener(e, resetTimer, { passive: true }));
+    }
+
+    resetTimer();
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        evts.forEach(e => window.removeEventListener(e, resetTimer));
+      }
+      if (inactiveTimerRef.current) clearTimeout(inactiveTimerRef.current);
+    };
   }, [user]);
 
   useEffect(() => {
@@ -2368,8 +2391,12 @@ export default function ApexTrader() {
       if (e.key === 'm' && !e.ctrlKey) setOForm(f => ({ ...f, kind: 'market' }));
       if (e.key === 'Escape') { setConfirmOrder(null); setShowNotifs(false); setChartFullscreen(false); setSidebarOpen(false); setShowHotkeys(false); }
     };
-    window.addEventListener('keydown', handle);
-    return () => window.removeEventListener('keydown', handle);
+
+    // Only add keyboard listener if window is available
+    if (typeof window !== 'undefined') {
+      window.addEventListener('keydown', handle);
+      return () => window.removeEventListener('keydown', handle);
+    }
   }, []);
 
   const showToast = useCallback((msg: string, type = 'success') => { setToast({ msg, type }); if (toastTimer.current) clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToast(null), 3200); }, []);
