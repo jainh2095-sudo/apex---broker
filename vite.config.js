@@ -4,8 +4,5 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  server: {
-    host: true, // Allow external connections
-    allowedHosts: true, // Allow all hosts (for CodeSandbox compatibility)
-  },
+  // Minimal config for CodeSandbox compatibility
 })
